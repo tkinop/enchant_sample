@@ -19,8 +19,8 @@ window.onload = function () {
 		own.x = 0;
 		own.y = 250;
 		own.frame = 18;
-		
 		own.addEventListener('enterframe', function() {
+		
 			if (core.input.left && this.x > 0) this.x -= 10;
 			if (core.input.right && this.x < 290) this.x += 10;
 			// zキー押下で弾発射
@@ -29,8 +29,19 @@ window.onload = function () {
 		core.rootScene.addChild(own);
 		core.keybind(90, 'a');
 
-		var enemy = new Enemy(160, 50);
 
+        //enemyオブジェクト格納
+        var enemies = new Array();
+        
+        //enemyオブジェクト作成
+        for (var i = 0; i < 10; i++) {
+            enemies[i] = new Enemy(
+                Math.floor( Math.random() * 320 ),
+                Math.floor( Math.random() * 50 ));
+        }
+        
+        
+        
 		// 自機の弾
         var Bullet = Class.create(Sprite, {
             initialize: function(x, y) {
@@ -42,19 +53,28 @@ window.onload = function () {
                 this.on('enterframe', function() {
                     //常に上に移動
                     this.y -= 10;
-                    if (this.intersect(enemy)) {
-//                        enemy.frame = 3;
-//                        enemy.image = core.assets['effect0.png'];
-//                        enemy.frame = 0;
-//                        enemy.scaleX = 1;
-//                        enemy.scaleY = 1;
-                        //弾接触時、爆発エフェクトを表示
-                        //1.敵を非表示
-                        this.parentNode.removeChild(enemy);
-                        //2.弾を非表示
-                        this.parentNode.removeChild(this);
-                        //2.爆発エフェクトを表示
-                        new Effect(this.x, this.y);
+                    for (var i = 0; i < 10; i++) {
+                        
+                        var enemy = enemies[i];
+                        if (this.within(enemy) && !enemy.isIntersect) {
+
+                            //接触済みフラグ
+                            enemy.isIntersect = true;
+
+                            //敵座標取得
+                            var enemyX = enemy.x + 8;
+                            var enemyY = enemy.y + 8;
+
+                            //弾接触時、爆発エフェクトを表示
+                            //1.敵を非表示
+                            this.parentNode.removeChild(enemy);
+                            //2.弾を非表示
+                            this.parentNode.removeChild(this);
+                            //3.爆発エフェクトを表示
+                            //　敵表示箇所でエフェクト表示
+                            new Effect(enemyX, enemyY);
+                            break;
+                        }
                     }
                 });
                 core.rootScene.addChild(this);
@@ -62,8 +82,15 @@ window.onload = function () {
         });
 
 	}
-	core.start();
 
+
+    core.start();
+
+    // 敵と弾接触時処理
+    var contactBullet = function() {
+        this.parentNode.removeChild(this);
+    };
+    
 	// 敵クラス
 	var Enemy = Class.create(Sprite, {
 		initialize: function(x, y) {
@@ -74,7 +101,11 @@ window.onload = function () {
 			this.y = y;
 			this.on('enterframe', function() {
 			});
-			core.rootScene.addChild(this);
+
+            var isIntersect = false;
+//            isIntersect = true;
+            
+            core.rootScene.addChild(this);            
 		}
 	});
 
@@ -84,8 +115,9 @@ window.onload = function () {
 			Sprite.call(this, 16, 16);
 			this.image = core.assets['effect0.png'];
 			this.frame = 0;
-			this.x = x;
-			this.y = y;
+//			this.x = x;
+//			this.y = y;
+            this.moveTo(x, y);
 			this.on('enterframe', function() {
                 this.frame++;
                 if (this.frame > 5) {
