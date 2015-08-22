@@ -35,49 +35,65 @@ window.onload = function () {
         
         //enemyオブジェクト作成
         for (var i = 0; i < 10; i++) {
+            var ajustLeft = 16;
+            var ajustRight = 32;
+            var ajustTop = 16;
             enemies[i] = new Enemy(
-                Math.floor( Math.random() * 320 ),
-                Math.floor( Math.random() * 50 ));
+                Math.floor( Math.random() * (320 - ajustRight - ajustLeft) + ajustLeft ),
+                Math.floor( Math.random() * (50 - ajustTop) + ajustTop ));
         }
         
         
+        // 弾数制限
+        var maxBulletNum = 5;
+        var activeBulletNum = 0;
         
 		// 自機の弾
         var Bullet = Class.create(Sprite, {
             initialize: function(x, y) {
-                Sprite.call(this, 16, 16);
-                this.image = core.assets['icon0.png'];
-                this.frame = 48;
-                this.x = x;
-                this.y = y;
-                this.on('enterframe', function() {
-                    //常に上に移動
-                    this.y -= 10;
-                    for (var i = 0; i < 10; i++) {
-                        
-                        var enemy = enemies[i];
-                        if (this.within(enemy) && !enemy.isIntersect) {
 
-                            //接触済みフラグ
-                            enemy.isIntersect = true;
+                if (activeBulletNum < maxBulletNum) {
+                    Sprite.call(this, 16, 16);
+                    this.image = core.assets['icon0.png'];
+                    this.frame = 48;
+                    this.x = x;
+                    this.y = y;
+                    this.on('enterframe', function() {
+                        //常に上に移動
+                        this.y -= 10;
+                        for (var i = 0; i < 10; i++) {
 
-                            //敵座標取得
-                            var enemyX = enemy.x + 8;
-                            var enemyY = enemy.y + 8;
+                            var enemy = enemies[i];
+                            if (this.within(enemy) && !enemy.isIntersect) {
 
-                            //弾接触時、爆発エフェクトを表示
-                            //1.敵を非表示
-                            this.parentNode.removeChild(enemy);
-                            //2.弾を非表示
-                            this.parentNode.removeChild(this);
-                            //3.爆発エフェクトを表示
-                            //　敵表示箇所でエフェクト表示
-                            new Effect(enemyX, enemyY);
-                            break;
+                                //接触済みフラグ
+                                enemy.isIntersect = true;
+
+                                //敵座標取得
+                                var enemyX = enemy.x + 8;
+                                var enemyY = enemy.y + 8;
+
+                                //弾接触時、爆発エフェクトを表示
+                                //1.敵を非表示
+                                this.parentNode.removeChild(enemy);
+                                //2.弾を非表示
+                                this.parentNode.removeChild(this);
+                                activeBulletNum--;
+                                //3.爆発エフェクトを表示
+                                //　敵表示箇所でエフェクト表示
+                                new Effect(enemyX, enemyY);
+                                break;
+                            }
                         }
-                    }
-                });
-                core.rootScene.addChild(this);
+                        if (this.y < 0) {
+                            activeBulletNum--;
+                            //弾を非表示
+                            this.parentNode.removeChild(this);
+                        }
+                    });
+                    activeBulletNum++;
+                    core.rootScene.addChild(this);
+                }
             }
         });
 
