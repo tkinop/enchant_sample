@@ -58,6 +58,7 @@ window.onload = function () {
                                 //弾接触時、爆発エフェクトを表示
                                 //1.敵を非表示
                                 this.parentNode.removeChild(enemy);
+                                enemyCount--;
                                 //2.弾を非表示
                                 this.parentNode.removeChild(this);
                                 activeBulletNum--;
@@ -158,16 +159,25 @@ window.onload = function () {
 
         //enemyオブジェクト格納
         var enemies = new Array();
+        var enemyMaxCount = 10;
+        var enemyCount = 0;
+
+        core.addEventListener('enterframe', function() {
+            //enemyオブジェクト作成
+            if (enemyCount == 0) {
+                for (var i = 0; i < enemyMaxCount; i++) {
+                    var ajustLeft = 16;
+                    var ajustRight = 32;
+                    var ajustTop = 16;
+                    enemies[i] = new Enemy(
+                        Math.floor( Math.random() * (320 - ajustRight - ajustLeft) + ajustLeft ),
+                        Math.floor( Math.random() * (50 - ajustTop) + ajustTop ));
+                    enemyCount++;
+                }
+            }
+        });
         
-        //enemyオブジェクト作成
-        for (var i = 0; i < 10; i++) {
-            var ajustLeft = 16;
-            var ajustRight = 32;
-            var ajustTop = 16;
-            enemies[i] = new Enemy(
-                Math.floor( Math.random() * (320 - ajustRight - ajustLeft) + ajustLeft ),
-                Math.floor( Math.random() * (50 - ajustTop) + ajustTop ));
-        }
+        
         
         var gameoverScene = new Scene();
         gameoverScene.backgroundColor = 'black';
@@ -195,9 +205,6 @@ window.onload = function () {
             gameoverImage.x = 65;
             gameoverImage.y = 112;
             scene.addChild(gameoverImage);
-            retryLabel.addEventListener(Event.TOUCH_START, function(e) {
-                core.replaceScene(createStartScene());
-            });
             return scene;
         };
 
